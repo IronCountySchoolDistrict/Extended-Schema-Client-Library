@@ -1,0 +1,1 @@
+require.config({paths:{api:"api"}}),define("loader",function(){}),require(["loader"],function(){require(["api","tlist"],function(e,t){e.objectToApiFormat({},""),t.objectToTlistFormat({},"a","b")})}),define("main",function(){});

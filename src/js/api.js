@@ -3,13 +3,13 @@
 /**
  * Implements the PowerSchool API client functions, and contains some helper functions related to using the API
  */
-define(['config'], function (config) {
+define(function () {
     'use strict';
     return {
 
         /**
          * Creates an object that will convert to a JSON string the PUT resource accepts
-         * See file:///mnt/vcenter/PS/Documentation/api-developer-guide-1.5.0/data-access/basic-read-and-write/resources.html#get_schema_resource_by_id
+         * See api-developer-guide-1.5.0/data-access/basic-read-and-write/resources.html#get_schema_resource_by_id
          * for JSON formats for UPDATE and INSERT operations
          * @param object {object}
          * @param tableName {string}
@@ -39,7 +39,7 @@ define(['config'], function (config) {
         put: function (data, tableName, recordId) {
             var apiObject = this.objectToApiFormat(data, tableName);
             return new Promise(function (resolve, reject) {
-                var url = config.baseUrl + '/ws/schema/table/' + tableName + '/' + recordId;
+                var url = '/ws/schema/table/' + tableName + '/' + recordId;
                 var xhr = new XMLHttpRequest();
                 xhr.onload = function () {
                     resolve(xhr.response);
@@ -47,7 +47,7 @@ define(['config'], function (config) {
                 xhr.onerror = reject;
                 xhr.open('PUT', url);
                 xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-                xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01')
+                xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
                 xhr.send(JSON.stringify(apiObject));
             });
         },
@@ -61,7 +61,7 @@ define(['config'], function (config) {
         post: function (data, tableName) {
             var apiObject = this.objectToApiFormat(data, tableName);
             return new Promise(function (resolve, reject) {
-                var url = config.baseUrl + '/ws/schema/table/' + tableName;
+                var url = '/ws/schema/table/' + tableName;
                 var xhr = new XMLHttpRequest();
                 xhr.onload = function () {
                     resolve(xhr.response);
@@ -69,7 +69,7 @@ define(['config'], function (config) {
                 xhr.onerror = reject;
                 xhr.open('POST', url);
                 xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-                xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01')
+                xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
                 xhr.send(JSON.stringify(apiObject));
             });
         }
