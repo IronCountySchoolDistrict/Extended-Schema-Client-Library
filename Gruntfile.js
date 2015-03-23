@@ -9,16 +9,16 @@ module.exports = function(grunt) {
                     name: 'main',
                     baseUrl: "src/js",
                     mainConfigFile: "src/js/loader.js",
-                    out: "src/build/main.js"
+                    out: "src/build/escl.js",
+                    optimize: "none"
                 }
             }
         }
     });
 
-    // Load the plugin that provides the "uglify" task.
+   
     grunt.loadNpmTasks('grunt-contrib-requirejs');
 
-    // Default task(s).
     grunt.registerTask('default', ['requirejs']);
 
 };
