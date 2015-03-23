@@ -6,10 +6,10 @@ module.exports = function(grunt) {
         requirejs: {
             compile: {
                 options: {
-                    name: 'main',
-                    baseUrl: "src/js",
-                    mainConfigFile: "src/js/loader.js",
-                    out: "src/build/escl.js",
+                    name: "escl",
+                    baseUrl: "escl",
+                    mainConfigFile: "escl/loader.js",
+                    out: "build/escl.js",
                     optimize: "none"
                 }
             }
