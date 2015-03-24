@@ -6,15 +6,6 @@
 define(function () {
     'use strict';
     return {
-        tlist: function () {
-            var formArray = form.serializeArray();
-            var formData = {};
-            formArray.forEach(function (elem) {
-                var name = elem.name;
-                formData[name] = elem.value;
-            });
-            var record = new record(formData);
-        },
 
         /**
          * Send the precursor request that enables the real POST request to be sent without PowerSchool returning an Authorization error.
@@ -40,7 +31,7 @@ define(function () {
          */
         encodeExtSchemaAsParam: function (record) {
             var recordCols = Object.keys(record.data).join(',');
-            return 'coreTable=' + record.coreTable + '&extGroup=' + record.extGroup + '&extTable=' + record.extTable + '&fieldname=' + recordCols + '&dispCols=' + recordCols;
+            return 'coreTable=' + record.coreTable + '&extGroup=' + record.extGroup + '&extTable=' + record.extTable + '&fieldName=' + recordCols + '&dispCols=' + recordCols;
         },
 
         /**
