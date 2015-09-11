@@ -1,1 +1,20 @@
+<!DOCTYPE html>
+<html>
+<!-- non framed -->
+<head>
+    <title>contacts</title>
+    ~[wc:commonscripts]
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen">
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+</head>
+<body>
+<form method="POST" action="/admin/changesrecorded.white.html">
 ~[tlist_child:Students.~[gpv:extGroup].~[gpv:extTable];displaycols:~[gpv:displayCols];fieldNames:~[gpv:fieldNames];type:html]
+
+<input type="hidden" name="ac" value="prim"/>
+    <div class="button-row">
+        <button type="submit">Submit</button>
+    </div>
+</form>
+</body>
+</html>
