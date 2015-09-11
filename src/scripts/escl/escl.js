@@ -7,14 +7,15 @@ export class Client {
     this.fieldNames = clientData.fieldNames;
     this.coreTableNumber = clientData.coreTableNumber;
     this.foreignKey = (clientData.foreignKey !== undefined ? clientData.foreignKey : undefined);
-    this.id = (clientData.id !== undefined ? clientData.id : undefined);
   }
 
-  _getAuthMetadata() {
+  _getAuthMetadata(record) {
     return {
       extGroup: this.extGroup,
       extTable: this.extTable,
-      displayCols: this.displayCols,
+      displayCols: Object.keys(record).filter((elem) => {
+        return elem !== 'id'
+      }),
       fieldNames: this.fieldNames
     }
   }
@@ -30,7 +31,7 @@ export class Client {
 
   _auth(record) {
     var authMetadata = this._getAuthMetadata();
-    var authUrl = `/${this._getPortal()}/tlist_child_auth.html?${this._encodeUri(authMetadata)}`;
+    var authUrl = `/${this._getPortal()}/tlist_child_auth.html?${this._encodeUri(this._authMetadata(record))}`;
     if (getPortal() !== 'guardian') {
       authUrl += `&frn=${this.coreTableNumber}${this.foreignKey}`;
     }
@@ -76,11 +77,11 @@ export class Client {
 
   /**
    * Convert key name for field to tlist format
-   * @param  {object} record object that holds data to be saved
-   * @param  {string} key    column name
-   * @return {string}        column name converted to tlist format
+   * @param  {string} key        column name
+   * @param  {number} [recordId] id of record to updated
+   * @return {string}            column name converted to tlist format
    */
-  _keyToTlist(key) {
+  _keyToTlist(key, recordId) {
     return 'CF-[' +
       this.coreTable +
       ':' +
@@ -90,15 +91,18 @@ export class Client {
       '.' +
       this.extTable +
       ':' +
-      (this.id !== undefined ? this.id : '-1') +
+      (recordId !== undefined ? recordId : '-1') +
       ']' +
       key;
   }
 
   _objToTlist(obj) {
     let newObj = {};
+    let recordId = (obj.id !== undefined ? obj.id : undefined);
     for (let key of Object.keys(obj)) {
-      newObj[this._keyToTlist(key)] = obj[key];
+      if (key !== 'id') {
+        newObj[this._keyToTlist(key, recordId)] = obj[key];
+      }
     }
     return newObj;
   }
@@ -113,7 +117,7 @@ export class Client {
         acString = '&ac=prim'
         break;
     }
-    console.log(this._encodeUri(this._objToTlist(record)) + acString);
+
     return this._encodeUri(this._objToTlist(record)) + acString;
   }
 
