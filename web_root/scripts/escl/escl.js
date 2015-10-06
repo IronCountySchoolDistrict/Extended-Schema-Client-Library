@@ -18,6 +18,11 @@ export class Client {
     this.foreignKey = (clientData.foreignKey !== undefined ? clientData.foreignKey : undefined);
   }
 
+  /**
+   * Returns an object that contains the parameters for the tlist_child_auth.html page
+   * @param  {object} record contains column name to column value mapping
+   * @return {object}        object that will be used to populate the tlist_child parameters
+   */
   _getAuthMetadata(record) {
     return {
       extGroup: this.extGroup,
@@ -31,6 +36,11 @@ export class Client {
     };
   }
 
+  /**
+   * Returns the name of the portal the user is currently on
+   * by parsing the what's between the first two slashes in the URL
+   * @return {string} portal can be: 'admin', 'teachers', 'guardian'
+   */
   _getPortal() {
     var path = window.location.pathname;
     var pos = path.indexOf('/', 1);
@@ -40,8 +50,11 @@ export class Client {
     return path;
   }
 
-
-
+  /**
+   * Encodes an object into a URI parameters string
+   * @param  {object} obj object to be encoded
+   * @return {string}     uri encoded string serialization of obj
+   */
   _encodeUri(obj) {
     return Object.keys(obj).map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
@@ -69,6 +82,13 @@ export class Client {
       key;
   }
 
+  /**
+   * Convert a "plain" object of data, where the column name maps to value,
+   * to a new object that maps the form field name as
+   * it would be rendered by a tlist_child tag to its value
+   * @param  {object} obj object that maps column name to column value
+   * @return {object}     object that maps a form field name as it would be rendered by a tlist_child tag to its value
+   */
   _objToTlist(obj) {
     let newObj = {};
     let recordId = (obj.id !== undefined ? obj.id : undefined);
@@ -80,6 +100,12 @@ export class Client {
     return newObj;
   }
 
+  /**
+   * Converts a simple object of column name to column value mapping
+   * to a string that will be sent as a POST request payload
+   * @param  {object} record simple object of column name to column value mappings
+   * @return {string}        string that will be sent as a POST request payload
+   */
   _objToPostStr(record) {
     var acString;
     switch (this._getPortal()) {
@@ -94,6 +120,10 @@ export class Client {
     return this._encodeUri(this._objToTlist(record)) + acString;
   }
 
+  /**
+   * Use the user's current portal to determine the corresponding form action URL
+   * @return {string} form action URL
+   */
   _getPostUrl() {
     var postUrl;
     switch (this._getPortal()) {
@@ -107,6 +137,12 @@ export class Client {
     return postUrl;
   }
 
+  /**
+   * Executes a GET request to a page that contains all of the fields that we will be saving,
+   * thus authenticating the POST request in save()
+   * @param  {object} record simple object of column name to column value mappings
+   * @return {Promise}       Resolves when the auth request's full response has arrived
+   */
   _auth(record) {
     var authMetadata = this._getAuthMetadata(record);
     var authUrl = `/${this._getPortal()}/tlist_child_auth.html?${this._encodeUri(authMetadata)}`;
@@ -120,6 +156,12 @@ export class Client {
     });
   }
 
+  /**
+   * Sends a POST request to save (either insert or update) the record
+   * @param  {object} record simple object of column name to column value mappings
+   * @return {Promise}       Resolves when the POST request full response has arrived.
+   * Rejects if the POST request's response contains an Authorization error.
+   */
   save(record) {
     var _this = this;
     return this._auth(record)
