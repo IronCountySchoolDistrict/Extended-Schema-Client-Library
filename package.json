@@ -4,7 +4,7 @@
   "description": "A JavaScript utility for working with PowerSchool's Extended Schema database tables.",
   "main": "escl.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -18,9 +18,12 @@
   "homepage": "https://github.com/IronCountySchoolDistrict/Extended-Schema-Client-Library#readme",
   "devDependencies": {
     "babel": "^5.4.4",
+    "chai": "*",
+    "chai-as-promised": "^5.1.0",
     "gulp": "^3.8.11",
     "gulp-babel": "^5.1.0",
     "gulp-jshint": "^1.10.0",
-    "jshint": "^2.7.0"
+    "jshint": "^2.7.0",
+    "mocha": "^2.3.2"
   }
 }
