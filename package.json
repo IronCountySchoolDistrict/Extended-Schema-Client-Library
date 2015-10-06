@@ -20,8 +20,12 @@
     "babel": "^5.4.4",
     "chai": "*",
     "chai-as-promised": "^5.1.0",
+    "eslint": "^1.6.0",
     "gulp": "^3.8.11",
     "gulp-babel": "^5.1.0",
+    "gulp-debug": "^2.1.1",
+    "gulp-eslint": "^1.0.0",
+    "gulp-if": "^2.0.0",
     "gulp-jshint": "^1.10.0",
     "jshint": "^2.7.0",
     "mocha": "^2.3.2"
