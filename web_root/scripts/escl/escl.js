@@ -9,7 +9,7 @@ if (!window.fetch) {
   var fetch = require('fetch');
 }
 
-export class Client {
+export default class Client {
   constructor(clientData) {
     this.coreTable = clientData.coreTable;
     this.extGroup = clientData.extGroup;
@@ -24,6 +24,11 @@ export class Client {
    * @return {object}        object that will be used to populate the tlist_child parameters
    */
   _getAuthMetadata(record) {
+    if (!record) {
+      throw TypeError('required parameter record is undefined');
+    } else if (!Object.keys(record).length) {
+      throw TypeError('parameter record is an empty object, must contain at least one key-value pair');
+    }
     return {
       extGroup: this.extGroup,
       extTable: this.extTable,
@@ -36,18 +41,22 @@ export class Client {
     };
   }
 
+  _getLocation() {
+    return window.location.pathname;
+  }
+
   /**
    * Returns the name of the portal the user is currently on
    * by parsing the what's between the first two slashes in the URL
    * @return {string} portal can be: 'admin', 'teachers', 'guardian'
    */
   _getPortal() {
-    var path = window.location.pathname;
-    var pos = path.indexOf('/', 1);
+    var location = this._getLocation();
+    var portal;
+    var pos = location.indexOf('/', 1);
     if (pos > 0) {
-      path = path.substring(1, pos);
+      return location.substring(1, pos);
     }
-    return path;
   }
 
   /**
@@ -56,8 +65,8 @@ export class Client {
    * @return {string}     uri encoded string serialization of obj
    */
   _encodeUri(obj) {
-    return Object.keys(obj).map(function(key) {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+    return Object.keys(obj).map(key => {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key])
     }).join('&');
   }
 
@@ -68,6 +77,9 @@ export class Client {
    * @return {string}            column name converted to tlist format
    */
   _keyToTlist(key, recordId) {
+    if (!key) {
+      throw TypeError('required parameter key is undefined');
+    }
     return 'CF-[' +
       this.coreTable +
       ':' +
@@ -108,7 +120,7 @@ export class Client {
    */
   _objToPostStr(record) {
     var acString;
-    switch (this._getPortal()) {
+    switch (this._getPortal(this._getLocation())) {
       case 'guardian':
         acString = '&ac=autosendupdate';
         break;
@@ -126,7 +138,7 @@ export class Client {
    */
   _getPostUrl() {
     var postUrl;
-    switch (this._getPortal()) {
+    switch (this._getPortal(window.location.pathname)) {
       case 'guardian':
         postUrl = '/guardian/changesrecorded.html';
         break;
@@ -145,11 +157,14 @@ export class Client {
    */
   _auth(record) {
     var authMetadata = this._getAuthMetadata(record);
-    var authUrl = `/${this._getPortal()}/tlist_child_auth.html?${this._encodeUri(authMetadata)}`;
-    if (getPortal() !== 'guardian') {
+    var encodedAuthMetadata = this._encodeUri(authMetadata);
+    var portal = this._getPortal(window.location.pathname);
+    var authUrl = `/${portal}/tlist_child_auth.html?${encodedAuthMetadata}`;
+
+    if (this._getPortal(window.location.pathname) !== 'guardian' && this.coreTableNumber && this.foreignKey) {
       authUrl += `&frn=${this.coreTableNumber}${this.foreignKey}`;
     }
-    return fetch(authUrl, {
+    return window.fetch(authUrl, {
       credentials: 'include'
     }).then(function(rawData) {
       return rawData.text();
