@@ -1,0 +1,8 @@
+{
+  "test_page": "dist/test/test-runner.html",
+  "framework": "mocha",
+  "src_files": [
+    "./dist/test/**/*.js",
+    "!dist/test/**/lib/**"
+  ]
+}
