@@ -27,11 +27,23 @@ gulp.task('build-then-deploy', function(callback) {
   return plugins.runSequence('build', 'deploy', callback);
 });
 
+gulp.task('watch', function() {
+    plugins.watch([
+      './test/**/*',
+      './web_root/**/*'
+    ], plugins.batch(function(events, done) {
+      gulp.start('build', done);
+    }));
+});
+
 gulp.task('build', ['babel'], function() {
   return gulp.src([
       './web_root/**/*',
       'plugin.xml',
-      '!/web_root/scripts/**/*'
+      './test/lib/**/*',
+      './test/*',
+      '!web_root/scripts/**/*',
+      '!test/*.js',
     ], {
       base: './'
     })
@@ -47,7 +59,9 @@ gulp.task('package', function() {
 
 gulp.task('babel', function() {
   return gulp.src([
-      './web_root/scripts/**/*'
+      './web_root/scripts/**/*',
+      './test/**/*.js',
+      '!test/**/lib/**'
     ], {
       base: './'
     })
