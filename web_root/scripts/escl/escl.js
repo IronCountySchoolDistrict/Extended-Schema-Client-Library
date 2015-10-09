@@ -1,13 +1,4 @@
 /*global require,window,getPortal*/
-require.config({
-  paths: {
-    fetch: 'https://cdnjs.cloudflare.com/ajax/libs/fetch/0.9.0/fetch'
-  }
-});
-
-if (!window.fetch) {
-  var fetch = require('fetch');
-}
 
 export default class Client {
   constructor(clientData) {
