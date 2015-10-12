@@ -15,7 +15,9 @@ var knownOptions = {
 var options = minimist(process.argv.slice(2), knownOptions);
 
 gulp.task('deploy', function() {
-  return gulp.src('dist/web/scripts/**')
+  return gulp.src('dist/web_root/scripts/**', {
+      base: './dist/web_root/'
+    })
     .pipe(plugins.debug())
     .pipe(function() {
       var env = options.env;
@@ -28,12 +30,12 @@ gulp.task('build-then-deploy', function(callback) {
 });
 
 gulp.task('watch', function() {
-    plugins.watch([
-      './test/**/*',
-      './web_root/**/*'
-    ], plugins.batch(function(events, done) {
-      gulp.start('build', done);
-    }));
+  plugins.watch([
+    './test/**/*',
+    './web_root/**/*'
+  ], plugins.batch(function(events, done) {
+    gulp.start('build', done);
+  }));
 });
 
 gulp.task('build', ['babel'], function() {

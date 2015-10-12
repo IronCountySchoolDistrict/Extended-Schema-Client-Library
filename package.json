@@ -28,6 +28,7 @@
     "gulp-eslint": "^1.0.0",
     "gulp-if": "^2.0.0",
     "gulp-jshint": "^1.10.0",
+    "gulp-sftp": "^0.1.5",
     "gulp-watch": "^4.3.5",
     "jshint": "^2.7.0",
     "local-web-server": "^0.5.23",
