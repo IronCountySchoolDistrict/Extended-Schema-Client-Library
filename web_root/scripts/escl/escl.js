@@ -185,9 +185,9 @@ export default class Client {
         return saveResp.text();
       })
       .then(function(saveResp) {
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
           if (saveResp.indexOf('Authorization') !== -1) {
-            reject('Request failed');
+            reject(new Error('Request failed'));
           } else {
             resolve(saveResp);
           }
