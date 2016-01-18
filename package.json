@@ -1,6 +1,6 @@
 {
   "name": "extended-schema-client-library",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A JavaScript utility for working with PowerSchool's Extended Schema database tables.",
   "main": "escl.js",
   "scripts": {
