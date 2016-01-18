@@ -14,68 +14,62 @@ var knownOptions = {
 
 var options = minimist(process.argv.slice(2), knownOptions);
 
-gulp.task('deploy', function() {
-  return gulp.src('dist/web_root/scripts/**', {
-      base: './dist/web_root/'
-    })
+gulp.task('deploy', function () {
+  return gulp.src('dist/web_root/scripts/**/*', {
+    base: 'dist/web_root/'
+  })
     .pipe(plugins.debug())
-    .pipe(function() {
-      var env = options.env;
-      return plugins.if(config.hasOwnProperty(env), plugins.sftp(config[env].deploy_credentials));
-    });
+    .pipe(plugins.if(config.hasOwnProperty(options.env), plugins.sftp(config[options.env].deploy_credentials)));
 });
 
-gulp.task('build-then-deploy', function(callback) {
+gulp.task('build-then-deploy', function (callback) {
   return plugins.runSequence('build', 'deploy', callback);
 });
 
-gulp.task('watch', function() {
-  plugins.watch([
-    './test/**/*',
-    './web_root/**/*'
-  ], plugins.batch(function(events, done) {
-    gulp.start('build', done);
-  }));
+gulp.task('watch', function (callback) {
+  return gulp.watch('./web_root/**/*', ['build-then-deploy']);
 });
 
-gulp.task('build', ['babel'], function() {
+gulp.task('build', ['babel'], function () {
   return gulp.src([
-      './web_root/**/*',
-      'plugin.xml',
-      './test/lib/**/*',
-      './test/*',
-      '!web_root/scripts/**/*',
-      '!test/*.js',
-    ], {
+    './web_root/**/*',
+    'plugin.xml',
+    './test/lib/**/*',
+    './test/*',
+    '!web_root/scripts/**/*',
+    '!test/*.js',
+  ], {
       base: './'
     })
     .pipe(plugins.debug())
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('package', function() {
-  return gulp.src('dist/**')
+gulp.task('package', function () {
+  return gulp.src([
+    'dist/**',
+    '!plugin.zip',
+    '!dist/test',
+    '!dist/test/**/*'
+    ])
     .pipe(plugins.zip('plugin.zip'))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('babel', function() {
+gulp.task('babel', function () {
   return gulp.src([
-      './web_root/scripts/**/*',
-      './test/**/*.js',
-      '!test/**/lib/**'
-    ], {
+    './web_root/scripts/**/*',
+    './test/**/*.js',
+    '!test/**/lib/**'
+  ], {
       base: './'
     })
     .pipe(plugins.debug())
-    .pipe(plugins.if(options['use-babel'], plugins.babel({
-      'blacklist': 'useStrict',
-      'modules': 'amd'
-    })))
+    .pipe(plugins.if(options['use-babel'], plugins.babel()))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('lint', function() {
+gulp.task('lint', function () {
   return gulp.src('src/**/*.js')
     .pipe(plugins.eslint())
     .pipe(plugins.eslint.format());
