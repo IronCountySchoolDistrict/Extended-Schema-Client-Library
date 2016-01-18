@@ -1,13 +1,18 @@
 /*global require,window,getPortal*/
 
-export default class Client {
+export class Client {
   constructor(clientData) {
     this.coreTable = clientData.coreTable;
     this.extGroup = clientData.extGroup;
     this.extTable = clientData.extTable;
     this.coreTableNumber = clientData.coreTableNumber;
     this.foreignKey = (clientData.foreignKey !== undefined ? clientData.foreignKey : undefined);
+    this.ops = {
+      SAVE: 'SAVE', // UPDATE or INSERT
+      DELETE: 'DELETE'
+    }
   }
+  
 
   /**
    * Returns an object that contains the parameters for the tlist_child_auth.html page
@@ -24,10 +29,10 @@ export default class Client {
       extGroup: this.extGroup,
       extTable: this.extTable,
       displayCols: Object.keys(record).filter((elem) => {
-        return elem !== 'id';
+        return (elem !== 'id' && elem !== 'foreignKey');
       }).join(','),
       fieldNames: Object.keys(record).filter((elem) => {
-        return elem !== 'id';
+        return (elem !== 'id' && elem !== 'foreignKey');
       }).join(',')
     };
   }
@@ -43,7 +48,6 @@ export default class Client {
    */
   _getPortal() {
     var location = this._getLocation();
-    var portal;
     var pos = location.indexOf('/', 1);
     if (pos > 0) {
       return location.substring(1, pos);
@@ -64,17 +68,22 @@ export default class Client {
   /**
    * Convert key name for field to tlist format
    * @param  {string} key        column name
+   * @param  {string} foreignKey foreignKey of the record -- follows the format ${coreTable}DCID
    * @param  {number} [recordId] id of record to updated
+   * @param           op         See this.ops
    * @return {string}            column name converted to tlist format
    */
-  _keyToTlist(key, recordId) {
+  _keyToTlist(key, foreignKey, recordId, op) {
     if (!key) {
       throw TypeError('required parameter key is undefined');
+    }
+    if (!op) {
+      throw TypeError('required parameter op is undefined');
     }
     return 'CF-[' +
       this.coreTable +
       ':' +
-      (this.foreignKey !== undefined ? this.foreignKey : 0) +
+      foreignKey +
       '.' +
       this.extGroup +
       '.' +
@@ -85,6 +94,20 @@ export default class Client {
       key;
   }
 
+  _toDeleteTlist(foreignKey, recordId) {
+    if (!foreignKey) {
+      throw TypeError('required parameter foreignKey is undefined');
+    }
+    if (!recordId) {
+      throw TypeError('required parameter recordId is undefined');
+    }
+
+    let key = 'DC-' + this.coreTable + ':' + foreignKey + '.' + this.extGroup + '.' + this.extTable + ':' + recordId;
+    let obj = {};
+    obj[key] = 'on';
+    return obj;
+  }
+  
   /**
    * Convert a "plain" object of data, where the column name maps to value,
    * to a new object that maps the form field name as
@@ -92,15 +115,20 @@ export default class Client {
    * @param  {object} obj object that maps column name to column value
    * @return {object}     object that maps a form field name as it would be rendered by a tlist_child tag to its value
    */
-  _objToTlist(obj) {
+  _objToTlist(obj, op) {
     let newObj = {};
     let recordId = (obj.id !== undefined ? obj.id : undefined);
-    for (let key of Object.keys(obj)) {
-      if (key !== 'id') {
-        newObj[this._keyToTlist(key, recordId)] = obj[key];
+    let foreignKey = (obj.foreignKey !== undefined ? obj.foreignKey : undefined);
+    if (op === this.ops.SAVE) {
+      for (let key of Object.keys(obj)) {
+        if (key !== 'id' && key !== 'foreignKey') {
+          newObj[this._keyToTlist(key, foreignKey, recordId, op)] = obj[key];
+        }
       }
+      return newObj;
+    } else if (op === this.ops.DELETE) {
+      return this._toDeleteTlist(foreignKey, recordId);
     }
-    return newObj;
   }
 
   /**
@@ -109,7 +137,7 @@ export default class Client {
    * @param  {object} record simple object of column name to column value mappings
    * @return {string}        string that will be sent as a POST request payload
    */
-  _objToPostStr(record) {
+  _objToPostStr(record, op) {
     var acString;
     switch (this._getPortal(this._getLocation())) {
       case 'guardian':
@@ -119,8 +147,12 @@ export default class Client {
         acString = '&ac=prim';
         break;
     }
-
-    return this._encodeUri(this._objToTlist(record)) + acString;
+    
+    let tlist = this._objToTlist(record, op);
+    console.log('tlist == ', tlist);
+    let encodedUri = this._encodeUri(tlist);
+    console.log('encodedUri == ', encodedUri + acString);
+    return encodedUri + acString;
   }
 
   /**
@@ -150,16 +182,78 @@ export default class Client {
     var authMetadata = this._getAuthMetadata(record);
     var encodedAuthMetadata = this._encodeUri(authMetadata);
     var portal = this._getPortal(window.location.pathname);
-    var authUrl = `/${portal}/tlist_child_auth.html?${encodedAuthMetadata}`;
-
-    if (this._getPortal(window.location.pathname) !== 'guardian' && this.coreTableNumber && this.foreignKey) {
-      authUrl += `&frn=${this.coreTableNumber}${this.foreignKey}`;
+    var authUrl = `/${portal}/escl/tlist_child_auth.html?${encodedAuthMetadata}`;
+    console.log(this.coreTableNumber);
+    console.log(record.foreignKey);
+    if (portal !== 'guardian' && this.coreTableNumber && record.foreignKey) {
+      authUrl += `&frn=${this.coreTableNumber}${record.foreignKey}`;
     }
-    return window.fetch(authUrl, {
+    console.log('authUrl == ', authUrl);
+    return window.fetch(authUrl, { credentials: 'include' })
+      .then(rawData => rawData.text());
+  }
+  
+  
+  
+  /**
+   * The tlist_child_auth.html page requires at least one field to be passed in, 
+   * but we can't be sure if a column was passed in with the record object.
+   * This function will fetch a column name so it can be passed to _auth.
+   * 
+   * @param  {string} coreTable eg., STUDENTS
+   * @param  {string} extendedTable
+   * @return {Promise}
+   */
+  _getSingleCol(coreTable, extendedTable) {
+    var portal = this._getPortal(window.location.pathname);
+    var url = `/${portal}/get-tab-column.json?coreTable=${coreTable}`;
+
+    return window.fetch(url, {
+      method: 'get',
       credentials: 'include'
-    }).then(function(rawData) {
-      return rawData.text();
-    });
+    })
+      .then(function (singleCol) {
+        return singleCol.json();
+      });
+  }
+
+  delete(record) {
+    var _this = this;
+
+    let allowedCols = Object.keys(record).filter(elem => elem !== 'id' && elem !== 'foreignKey');
+    var authPromise;
+    if (!allowedCols.length) {
+      authPromise = this._getSingleCol(this.coreTable, this.extTable)
+        .then(singleCol => {
+          record[singleCol.column_name] = ''; // value doesn't matter here, just the key name
+          return this._auth(record);
+        })
+    } else {
+      authPromise = this._auth(record);
+    }
+
+    return authPromise
+      .then(function () {
+        console.log(_this._objToTlist(record, _this.ops.DELETE));
+        return window.fetch(_this._getPostUrl(), {
+          method: 'post',
+          headers: {
+            'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: _this._objToPostStr(record, _this.ops.DELETE), // singleCol, if needed, will have been added by now because we then'd authPromise
+          credentials: 'include'
+        })
+      })
+      .then(saveResp => saveResp.text())
+      .then(function (saveResp) {
+        return new Promise((resolve, reject) => {
+          if (saveResp.indexOf('Authorization') !== -1) {
+            reject(new Error('Request failed'));
+          } else {
+            resolve(saveResp);
+          }
+        });
+      });
   }
 
   /**
@@ -171,20 +265,20 @@ export default class Client {
   save(record) {
     var _this = this;
     return this._auth(record)
-      .then(function() {
+      .then(function () {
         return window.fetch(_this._getPostUrl(), {
           method: 'post',
           headers: {
             'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
           },
-          body: _this._objToPostStr(record),
+          body: _this._objToPostStr(record, _this.ops.SAVE),
           credentials: 'include'
         });
       })
-      .then(function(saveResp) {
+      .then(function (saveResp) {
         return saveResp.text();
       })
-      .then(function(saveResp) {
+      .then(function (saveResp) {
         return new Promise((resolve, reject) => {
           if (saveResp.indexOf('Authorization') !== -1) {
             reject(new Error('Request failed'));

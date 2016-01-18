@@ -1,0 +1,19 @@
+~[tlist_sql;
+SELECT
+	COLUMN_NAME
+FROM
+	all_tab_columns 
+WHERE
+	LOWER(TABLE_NAME) = LOWER('u_sped_students_iep')
+    AND COLUMN_NAME != 'ID'
+    AND LOWER(COLUMN_NAME) != LOWER('~[gpv:coreTable]DCID')
+    AND COLUMN_NAME != 'WHOCREATED'
+    AND COLUMN_NAME != 'WHENCREATED'
+    AND COLUMN_NAME != 'WHOMODIFIED'
+    AND COLUMN_NAME != 'WHENMODIFIED'
+    AND ROWNUM <= 1
+]
+  {
+    "column_name": "~(column_name)"
+  }
+[/tlist_sql]
