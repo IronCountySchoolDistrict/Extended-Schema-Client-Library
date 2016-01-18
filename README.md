@@ -5,7 +5,7 @@ A JavaScript utility for working with PowerSchool's Extended Schema database tab
 ```
 var contact = {
   id: contactRecordResp.id, // Primary key
-  contactdcid: contactRecordResp.id // Foreign key
+  foreignKey: contactRecordResp.id // Foreign key
 };
 
 
