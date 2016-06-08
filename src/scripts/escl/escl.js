@@ -1,5 +1,3 @@
-/*global require,window,getPortal*/
-
 export class Client {
   constructor(clientData) {
     this.coreTable = clientData.coreTable;
@@ -12,7 +10,6 @@ export class Client {
       DELETE: 'DELETE'
     }
   }
-  
 
   /**
    * Returns an object that contains the parameters for the tlist_child_auth.html page
@@ -25,15 +22,14 @@ export class Client {
     } else if (!Object.keys(record).length) {
       throw TypeError('parameter record is an empty object, must contain at least one key-value pair');
     }
+    // filter out object keys that are database keys
+    const isDbKey = (elem) => (elem !== 'id' && elem !== 'foreignKey');
+    const displayCols = Object.keys(record).filter(isDbKey).join(',');
     return {
       extGroup: this.extGroup,
       extTable: this.extTable,
-      displayCols: Object.keys(record).filter((elem) => {
-        return (elem !== 'id' && elem !== 'foreignKey');
-      }).join(','),
-      fieldNames: Object.keys(record).filter((elem) => {
-        return (elem !== 'id' && elem !== 'foreignKey');
-      }).join(',')
+      displayCols: displayCols,
+      fieldNames: displayCols
     };
   }
 
@@ -107,7 +103,7 @@ export class Client {
     obj[key] = 'on';
     return obj;
   }
-  
+
   /**
    * Convert a "plain" object of data, where the column name maps to value,
    * to a new object that maps the form field name as
@@ -147,7 +143,7 @@ export class Client {
         acString = '&ac=prim';
         break;
     }
-    
+
     let tlist = this._objToTlist(record, op);
     console.log('tlist == ', tlist);
     let encodedUri = this._encodeUri(tlist);
@@ -192,14 +188,14 @@ export class Client {
     return window.fetch(authUrl, { credentials: 'include' })
       .then(rawData => rawData.text());
   }
-  
-  
-  
+
+
+
   /**
-   * The tlist_child_auth.html page requires at least one field to be passed in, 
+   * The tlist_child_auth.html page requires at least one field to be passed in,
    * but we can't be sure if a column was passed in with the record object.
    * This function will fetch a column name so it can be passed to _auth.
-   * 
+   *
    * @param  {string} coreTable eg., STUDENTS
    * @param  {string} extendedTable
    * @return {Promise}
