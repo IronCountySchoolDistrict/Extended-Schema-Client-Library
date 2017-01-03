@@ -185,10 +185,9 @@ export class Client {
       authUrl += `&frn=${this.coreTableNumber}${record.foreignKey}`;
     }
     console.log('authUrl == ', authUrl);
-    return window.fetch(authUrl, { credentials: 'include' })
+    return window.fetch(authUrl, {credentials: 'include'})
       .then(rawData => rawData.text());
   }
-
 
 
   /**
