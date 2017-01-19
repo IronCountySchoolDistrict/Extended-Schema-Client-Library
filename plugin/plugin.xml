@@ -3,7 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         description="Extended Schema Client Library"
         name="Extended Schema Client Library"
-        version="0.1.0"
+        version="0.1.1"
         xsi:schemaLocation="http://plugin.powerschool.pearson.com plugin.xsd">
 
     <publisher name="Iron County School District Data Team">
