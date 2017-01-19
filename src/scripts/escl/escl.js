@@ -201,7 +201,7 @@ export class Client {
    */
   _getSingleCol(coreTable, extendedTable) {
     var portal = this._getPortal(window.location.pathname);
-    var url = `/${portal}/get-tab-column.json?coreTable=${coreTable}`;
+    var url = `/${portal}/get-tab-column.json?coreTable=${coreTable}&extendedTable=${extendedTable}`;
 
     return window.fetch(url, {
       method: 'get',

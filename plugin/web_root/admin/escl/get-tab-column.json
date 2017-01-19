@@ -4,7 +4,7 @@ SELECT
 FROM
 	all_tab_columns 
 WHERE
-	LOWER(TABLE_NAME) = LOWER('u_sped_students_iep')
+	LOWER(TABLE_NAME) = LOWER('~[gpv:extendedTable]')
     AND COLUMN_NAME != 'ID'
     AND LOWER(COLUMN_NAME) != LOWER('~[gpv:coreTable]DCID')
     AND COLUMN_NAME != 'WHOCREATED'
